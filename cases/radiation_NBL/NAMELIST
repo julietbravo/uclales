@@ -1,0 +1,75 @@
+&model
+! GRID --------------------
+  nxp          = 36
+  nyp          = 5
+  nzp          = 51
+  deltax       = 5
+  deltay       = 5
+!  deltaz       = 5
+  igrdtyp      = 3  ! 1=nzp,dz,etc, 3=via zm_grid_in
+
+! TIME --------------------
+  runtype      = "INITIAL"
+  strtim       = 196.79 ! 196.79 = Qnet->0
+  timmax       = 57600
+  wctime       = 27000
+  dtlong       = 15
+  istpfl       = 20
+
+! PHYSICS -----------------
+  iradtyp      = 4  ! 4=d4stream
+  isfctyp      = 5  ! 5=lsm
+  level        = 2
+  nfpt         = 8
+  distim       = 300.
+  corflg       = .true.
+  prndtl       = 0.3333333
+  cntlat       = 52.
+  ltimedep     = .false.
+  sfc_albedo   = 0.25   ! van Heerwaarden 2010a
+  th00         = 296.
+  sst          = 291.
+  csx          = 0.17
+
+  drtcon       = 0.
+  dthcon       = -50.
+
+  iadv_mom     = 44
+  iadv_scal    = 44    
+  gcfl         = 1.0 
+  cfllim       = 1.5  
+
+! INIT --------------------
+  zrand        = 500
+  itsflg       = 0
+  ipsflg       = 1
+  irsflg       = 1
+  ps           = 0, ! 0=provide sound_in 
+!  ts           =  290.0,  290.0,
+!  rts          =    8.0,    8.0,
+!  us           =   10.,    10., 
+!  vs           =    0.,     0., 
+  umean        = 2.5
+  vmean        = 0.
+
+! STAT --------------------
+  hfilin       = 'rad.0036000s'
+  filprf       = 'rad'
+  frqhis       = 3600. 
+  frqanl       = 9999999.
+  savg_intvl   = 60.
+  ssam_intvl   = 60.
+  mpistat      = .true.
+
+! CROSS -------------------
+  lcross       = .false.
+  frqcross     = 3600.
+  lxy          = .false.
+  lxz          = .false.
+  lyz          = .false.
+  lxysurf      = .false.
+  xcross       = 0.
+  ycross       = 0.
+  zcross(1)    = 1
+  zcross(2)    = 50
+/

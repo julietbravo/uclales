@@ -1,0 +1,39 @@
+ !
+ ! H10 = van Heerwaarden 2010a
+ !
+
+ &SURFNAMELIST
+ local         = true
+ hetero        = false
+
+ tsoilav(1)    = 290.
+ tsoilav(2)    = 287.
+ tsoilav(3)    = 287.
+ tsoilav(4)    = 287.
+ tsoildeepav   = 287.
+ 
+ phiwav(1)     = 0.43
+ phiwav(2)     = 0.43
+ phiwav(3)     = 0.43
+ phiwav(4)     = 0.43
+
+ z0mav         = 0.05      ! H10
+ z0hav         = 0.01      !  "
+ LAIav         = 2.        !  "
+ cvegav        = 0.9       !  "
+ gDav          = 0.        !  "
+ rsminav       = 110.      !  "
+ rssoilminav   = 50.       !  "
+ Cskinav       = 0.
+ lambdaskinav  = 5.        ! NOT ECWMF (p111)
+ Wlav          = 0.        ! no liq water on leaves
+ Wmax          = 0.0002    ! ECMWF (p121)
+
+ phi           = 0.614     ! ECMWF (p126, very fine) 
+ phifc         = 0.541     !  "
+ phiwp         = 0.335     !  "
+ gammasat      = 1.74e-6   ! ECMWF (p126, very fine)
+ lambdasm      = 3.44      ! ECMWF (p121)
+
+ albedoav      = 0.25      ! H10
+/
