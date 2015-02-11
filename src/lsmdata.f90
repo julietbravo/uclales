@@ -75,16 +75,16 @@ module lsmdata
   real              :: tsoildeepav = 283. !< Average deep soil temperature [K]
 
   ! Soil related constants [adapted from ECMWF]
-  real, parameter   :: phi       = 0.472  !<  volumetric soil porosity [-]
-  real, parameter   :: phifc     = 0.323  !<  volumetric moisture at field capacity [-]
-  real, parameter   :: phiwp     = 0.171  !<  volumetric moisture at wilting point [-]
+  real              :: phi       = 0.472  !<  volumetric soil porosity [-]
+  real              :: phifc     = 0.323  !<  volumetric moisture at field capacity [-]
+  real              :: phiwp     = 0.171  !<  volumetric moisture at wilting point [-]
   real, parameter   :: pCm       = 2.19e6 !<  Volumetric soil heat capacity [J/m3/K]
   real, parameter   :: pCw       = 4.2e6  !<  Volumetric water heat capacity [J/m3/K]
   real, parameter   :: lambdadry = 0.190  !<  Heat conductivity dry soil [W/m/K]
-  real, parameter   :: lambdasm  = 3.11   !<  Heat conductivity soil matrix [W/m/K]
+  real              :: lambdasm  = 3.11   !<  Heat conductivity soil matrix [W/m/K]
   real, parameter   :: lambdaw   = 0.57   !<  Heat conductivity water [W/m/K]
   real, parameter   :: bc        = 6.04     !< Clapp and Hornberger non-dimensional exponent [-]
-  real, parameter   :: gammasat  = 0.57e-6  !< Hydraulic conductivity at saturation [m s-1]
+  real              :: gammasat  = 0.57e-6  !< Hydraulic conductivity at saturation [m s-1]
   real, parameter   :: psisat    = -0.388   !< Matrix potential at saturation [m]
 
   ! Land surface properties
@@ -184,8 +184,8 @@ module lsmdata
     !< Jarvis-Steward related variables
     rsminav, rssoilminav, LAIav, gDav, &
     !< Heterogeneity related variables
-    hetper, LAImin, LAImax, &
-    Wmax
+    hetper, LAImin, LAImax, Wmax, &
+    phi, phifc, phiwp, lambdasm, gammasat
 
     open(17,file='SURFNAMELIST',status='old',iostat=ierr)
     read (17,SURFNAMELIST,iostat=ierr)
