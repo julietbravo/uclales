@@ -701,6 +701,7 @@ contains
     n2g = nxpg
     n3g = nypg
 
+    if(myid==0) print *,'-------------------------------------------------'
     do k=2,kmx
        allocate (rand_temp(3:n2g-2,3:n3g-2))
        call random_number(rand_temp)
@@ -712,6 +713,7 @@ contains
        do j=3,n3-2
           do i=3,n2-2
              fld(k,i,j) = fld(k,i,j) + rand(i,j)*xmag(k)
+             xx = xx + rand(i,j)*xmag(k)
           end do
        end do
 
@@ -719,21 +721,16 @@ contains
        call double_scalar_par_sum(xxl,xx)
        xx = xx/real((n2g-4)*(n3g-4))
        fld(k,:,:)= fld(k,:,:) - xx
+    
+       if(myid == 0) print 600,zt(k),xmag(k)
     end do
-
-    if(myid == 0) then
-       print *,'-------------------------------------------------'
-       print 600,zt(kmx),rand(3,3),xx
-    endif
 
     call sclrset('cnst',n1,n2,n3,fld)
 
     return
 
-600 format(1x,'Inserting random temperature perturbations',    &
-         /1x,'Below: ',F7.2,' meters;',                        &
-         /1x,'with test value of: ',E12.5,                     &
-         /1x,'and a magnitude of: ',E12.5)
+600 format(1x,'Random perturbation: z=',F7.2,'m, magnitude=',E12.5)
+
   end subroutine random_pert
 
   subroutine random_init
