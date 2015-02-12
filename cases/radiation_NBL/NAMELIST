@@ -1,6 +1,6 @@
 &model
 ! GRID --------------------
-  nxp          = 36
+  nxp          = 20
   nyp          = 5
   nzp          = 51
   deltax       = 5
@@ -11,7 +11,7 @@
 ! TIME --------------------
   runtype      = "INITIAL"
   strtim       = 196.79 ! 196.79 = Qnet->0
-  timmax       = 57600
+  timmax       = 32400
   wctime       = 27000
   dtlong       = 15
   istpfl       = 20
@@ -49,7 +49,7 @@
 !  rts          =    8.0,    8.0,
 !  us           =   10.,    10., 
 !  vs           =    0.,     0., 
-  umean        = 2.5
+  umean        = 3.5
   vmean        = 0.
 
 ! STAT --------------------

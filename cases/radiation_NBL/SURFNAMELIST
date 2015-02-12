@@ -6,16 +6,16 @@
  local         = true
  hetero        = false
 
- tsoilav(1)    = 290.
- tsoilav(2)    = 287.
- tsoilav(3)    = 287.
- tsoilav(4)    = 287.
- tsoildeepav   = 287.
+ tsoilav(1)    = 289.7
+ tsoilav(2)    = 289.1
+ tsoilav(3)    = 288.2
+ tsoilav(4)    = 286.4
+ tsoildeepav   = 285.5
  
- phiwav(1)     = 0.43
- phiwav(2)     = 0.43
- phiwav(3)     = 0.43
- phiwav(4)     = 0.43
+ phiwav(1)     = 0.25
+ phiwav(2)     = 0.35
+ phiwav(3)     = 0.45
+ phiwav(4)     = 0.614     ! saturated
 
  z0mav         = 0.05      ! H10
  z0hav         = 0.01      !  "

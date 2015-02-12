@@ -4,11 +4,11 @@ from pylab import *
 # ------------------
 # Settings
 # ------------------
-ps   = 1e5     # surface pressure
-th0  = 290     # initial mixed-layer temperature
-RH0  = 0.5     # initial (lowest model level) relative humidity
-ztop = 1000    # estimated domain top
-dz0  = 10       # vertical grid spacing lowest level
+ps    = 1e5     # surface pressure
+th0   = 290     # initial mixed-layer temperature
+RH0   = 0.6     # initial (lowest model level) relative humidity
+ztop  = 1000    # estimated domain top
+dz0   = 10       # vertical grid spacing lowest level
 
 # ------------------
 # make stretched grid
@@ -46,7 +46,7 @@ u   = np.zeros(z.size)
 v   = np.zeros(z.size)
 
 thl[:] = th0
-u  [:] = 5.
+u  [:] = 7.
 v  [:] = 0.
 
 # Calculate moisture mixing ratio
