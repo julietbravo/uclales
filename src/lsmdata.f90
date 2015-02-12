@@ -296,10 +296,16 @@ module lsmdata
     !dzsoil(4) = 1.39    !z = 2.86 m 
 
     !ECMWF config from Chiel
-    dzsoil(1) = 0.07  
-    dzsoil(2) = 0.21
-    dzsoil(3) = 0.72
-    dzsoil(4) = 1.89
+    !dzsoil(1) = 0.07  
+    !dzsoil(2) = 0.21
+    !dzsoil(3) = 0.72
+    !dzsoil(4) = 1.89
+
+    ! Test Bart: depths at 5, 15, 30, 60 cm
+    dzsoil(1) = 0.05  
+    dzsoil(2) = 0.10
+    dzsoil(3) = 0.15
+    dzsoil(4) = 0.30
  
     ! Calculate vertical layer properties
     zsoil(1)  = dzsoil(1)

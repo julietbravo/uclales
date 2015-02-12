@@ -237,7 +237,7 @@ contains
 
     ! BvS: only when LSM initialized
     if ((isfctyp == 5) .and. (init_lsm .eqv. .false.)) then
-      call accum_lsm(nxp,nyp,a_Qnet,a_G0,tndskin,ra,rsurf,rsveg,rssoil,a_tskin,a_qskin,obl,cliq,a_Wl,Cskinav)
+      call accum_lsm(nxp,nyp,a_Qnet,a_G0,tndskin,ra,rsurf,rsveg,rssoil,a_tskin,a_qskin,obl,cliq,a_Wl,Cskinav,a_tsoil)
     end if
 
     if((isfctyp == 55) .and. (init_lsm .eqv. .false.)) then
@@ -1687,7 +1687,7 @@ contains
   ! for land surface variables (if isfctyp=5)
   !
   subroutine accum_lsm(nxp, nyp, a_Qnet, a_G0, tndskin, ra, rsurf, rsveg, &
-                       rsoil, a_tskin,a_qskin, obl, cliq, a_Wl, Cskinav)
+                       rsoil, a_tskin,a_qskin, obl, cliq, a_Wl, Cskinav, tsoil)
 
     integer, intent (in)  :: nxp,nyp
     real, intent (in)     :: a_Qnet(nxp,nyp)
@@ -1703,6 +1703,7 @@ contains
     real, intent (in)     :: cliq(nxp,nyp)
     real, intent (in)     :: a_Wl(nxp,nyp)
     real, intent (in)     :: Cskinav
+    real, intent (in)     :: tsoil(4,nxp,nyp)
 
     ssclr(46) = sum(a_Qnet(3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
     ssclr(47) = sum(a_G0(3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
@@ -1716,6 +1717,11 @@ contains
     ssclr(55) = sum(obl(3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
     ssclr(56) = sum(cliq(3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
     ssclr(57) = sum(a_Wl(3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
+
+    ssclr(69) = sum(tsoil(1,3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
+    ssclr(70) = sum(tsoil(2,3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
+    ssclr(71) = sum(tsoil(3,3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
+    ssclr(72) = sum(tsoil(4,3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
 
   end subroutine accum_lsm
 

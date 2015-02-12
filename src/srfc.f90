@@ -1248,8 +1248,6 @@ contains
           a_Wl(i,j) =  Wlm(i,j) - rk3coef * ( LEliq          / (rowt * alvl))
         end if
 
-        !if(i==5 .and. j==5) print*,nstep,a_Wl(i,j)
-
         !" Save temperature and liquid water from previous timestep 
         if(nstep == 1) then
           tsoilm(:,i,j) = a_tsoil(:,i,j)
@@ -1276,6 +1274,12 @@ contains
           lambdas(k,i,j) = bc * gammasat * (-1.) * psisat / phi &
                            * (a_phiw(k,i,j) / phi) ** (bc + 2.)
         end do
+
+
+
+
+
+
 
         !" Calculate soil moisture conductivity and difusivity at half levels
         do k = 1, ksoilmax-1
