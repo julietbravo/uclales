@@ -19,8 +19,10 @@
 !
 module radiation
 
-  use defs, only       : cp, rcp, cpr, rowt, roice, p00, pi, nv1, nv, SolarConstant
-  use fuliou, only     : rad, minSolarZenithCosForVis
+  use defs, only          : cp, rcp, cpr, rowt, roice, p00, pi, nv1, nv, SolarConstant
+  use fuliou, only        : rad, minSolarZenithCosForVis
+  use mpi_interface, only : myid, pecount, double_array_par_sum_root, broadcast_array, nxpg, nypg
+
   implicit none
   character (len=10), parameter :: background = 'backrad_in'
 
@@ -33,12 +35,16 @@ module radiation
   real    :: ee, u0, day, time, alat, zz
   logical :: fixed_sun = .false.
   logical :: radMcICA = .true.
+
+  ! BvS
   logical :: heating_atmosphere = .true. ! flag to disable radiative heating in atmosphere
+  logical :: single_column_rad = .false. ! use domain mean profiles for (single column) radiation, apply to 3d field
   real    :: rad_eff_radius = 1.
 
   ! BvS: for simple surface radiation
   logical :: fixed_lwin = .false.
   real    :: flwin      = 300.
+  ! end BvS
 
   contains
     subroutine d4stream(n1,n2,n3,alat,time,sknt,sfc_albedo,CCN,dn0, &
@@ -55,19 +61,21 @@ module radiation
       real, dimension (n2,n3), intent (out),optional    :: albedo, lflxu_toa, lflxd_toa, sflxu_toa, sflxd_toa
 
       integer :: kk
+      real    :: ijtoti ! (1/((nxp-4)*(nyp-4))
       real    :: xfact, prw, pri, p0(n1), exner(n1), pres(n1)
+      real    :: th_suml(n1), th_p(n1), rv_suml(n1), rv_p(n1), ttend(n1)
 
       if (first_time) then
-         p0(n1) = (p00*(pi0(n1)/cp)**cpr) / 100.
-         p0(n1-1) = (p00*(pi0(n1-1)/cp)**cpr) / 100.
-         call setup(background,n1,npts,nv1,nv,p0,pi0)
-         first_time = .False.
-         if (allocated(pre))   pre(:) = 0.
-         if (allocated(pde))   pde(:) = 0.
-         if (allocated(piwc)) piwc(:) = 0.
-         if (allocated(prwc)) prwc(:) = 0.
-         if (allocated(plwc)) plwc(:) = 0.
-         if (allocated(pgwc)) pgwc(:) = 0.
+        p0(n1) = (p00*(pi0(n1)/cp)**cpr) / 100.
+        p0(n1-1) = (p00*(pi0(n1-1)/cp)**cpr) / 100.
+        call setup(background,n1,npts,nv1,nv,p0,pi0)
+        first_time = .False.
+        if (allocated(pre))   pre(:) = 0.
+        if (allocated(pde))   pde(:) = 0.
+        if (allocated(piwc)) piwc(:) = 0.
+        if (allocated(prwc)) prwc(:) = 0.
+        if (allocated(plwc)) plwc(:) = 0.
+        if (allocated(pgwc)) pgwc(:) = 0.
       end if
       !
       ! initialize surface albedo, emissivity and skin temperature.
@@ -86,83 +94,76 @@ module radiation
       !
       prw = (4./3.)*pi*rowt
       pri = (3.*sqrt(3.)/8.)*roice
-      do j=3,n3-2
-         do i=3,n2-2
+ 
+      ! 
+      ! Calculate domain mean profiles and use them for radiation 
+      !
+      if(single_column_rad) then
+    
+        ! Calculate domain mean temperature and moisture profiles
+        do k=1,n1
+          ! Sum per MPI process
+          th_suml(k) = sum(th(k,3:n2-2,3:n3-2))
+          rv_suml(k) = sum(rv(k,3:n2-2,3:n3-2))
+          ! Calculate pressure 
+          exner(k) = (pi0(k)+pi1(k))/cp ! neglect pip(k,i,j) for now
+          pres(k)  = p00 * (exner(k))**cpr   
+        end do
+
+        call double_array_par_sum_root(th_suml, th_p, n1)
+        call double_array_par_sum_root(rv_suml, rv_p, n1)
+
+        ! Only myid==0 does the radiation
+        if(myid == 0) then
+          ijtoti = 1./((nxpg-4)*(nypg-4)) 
+          do k=1,n1
+            ! Domain mean profiles:
+            th_p(k) = th_p(k) * ijtoti 
+            rv_p(k) = rv_p(k) * ijtoti 
+          end do
+
+          ! Put input radiation reversed into arrays:
+          pp(nv1) = 0.5*(pres(1)+pres(2)) / 100.
+          do k=2,n1
+            kk = nv-(k-2) ! reversed index
+
+            pt(kk)   = th_p(k) * exner(k)
+            ph(kk)   = max(0., rv_p(k))
+
+            plwc(kk) = 0. ! for now no liquid etc.
+            pre(kk)  = 0.
+            prwc(kk) = 0.
+            piwc(kk) = 0.
+            pde(kk)  = 0.
+            pgwc(kk) = 0.
+
+            if (k < n1) pp(kk) = 0.5*(pres(k)+pres(k+1)) / 100.
+
+          end do 
+ 
+          pp(nv-n1+2) = pres(n1)/100. - 0.5*(pres(n1-1)-pres(n1)) / 100.
+
+          ! Radiation solver
+          call rad(sfc_albedo, u0, SolarConstant, sknt, ee, pp, pt, ph, po,&
+                   fds, fus, fdir, fuir, plwc=plwc, pre=pre, useMcICA=radMcICA)
+        end if
+        
+        ! Broadcast radiation profiles to all MPI processes 
+        call broadcast_array(fds,  0, nv1)
+        call broadcast_array(fus,  0, nv1)
+        call broadcast_array(fdir, 0, nv1)
+        call broadcast_array(fuir, 0, nv1)
+
+        do j=3,n3-2
+          do i=3,n2-2
             do k=1,n1
-               exner(k)= (pi0(k)+pi1(k)+pip(k,i,j))/cp
-               pres(k) = p00 * (exner(k))**cpr
-            end do
-            pp(nv1) = 0.5*(pres(1)+pres(2)) / 100.
-            do k=2,n1
-               kk = nv-(k-2)
-               !irina
-               pt(kk) = th(k,i,j)*exner(k)
-               !old
-             !  pt(kk) = tk(k,i,j)
-               ph(kk) = max(0.,rv(k,i,j))
-               plwc(kk) = 1000.*dn0(k)*max(0.,rc(k,i,j))
-               pre(kk)  = rad_eff_radius*1.e6*(plwc(kk)/(1000.*prw*CCN*dn0(k)))**(1./3.)
-               pre(kk)=min(max(pre(kk),4.18),31.23)
-               if (plwc(kk).le.0.) pre(kk) = 0.
-               if (present(rr)) then
-                 prwc(kk) = 1000.*dn0(k)*rr(k,i,j)
-               else
-                 prwc(kk) = 0.
-               end if
-               if (present(ice)) then
-                 piwc(kk) = 1000.*dn0(k)*ice(k,i,j)
-                 if (nice(k,i,j).gt.0.0) then
-                    pde(kk)  = 1.e6*(piwc(kk)/(1000.*pri*nice(k,i,j)*dn0(k)))**(1./3.)
-                    pde(kk)=min(max(pde(kk),20.),180.)
-                 else
-                    pde(kk)  = 0.0
-                 endif
-               else
-                  piwc(kk) = 0.
-                  pde(kk) = 0.0
-               end if
-               if (present(grp)) then
-                 pgwc(kk) = 1000.*dn0(k)*grp(k,i,j)
-               else
-                  pgwc(kk) = 0.
-               end if
-               if (k < n1) pp(kk) = 0.5*(pres(k)+pres(k+1)) / 100.
-            end do
-            pp(nv-n1+2) = pres(n1)/100. - 0.5*(pres(n1-1)-pres(n1)) / 100.
-
-            !print *, "pp",pp(:)
-            !print *, "pt",pt(:)
-            !print *, "ph",ph(:)
-            !print *, "po",po(:)
-            !print *, "plwc",plwc(:)
-            !print *, "pre",pre(:)
-            !print *, "u0",u0
-
-            !do k=1,250
-            !  print*,k,pp(k),pt(k),ph(k),po(k)
-            !end do
-            !stop
-
-            if (present(ice).and.present(grp)) then
-               call rad( sfc_albedo, u0, SolarConstant, sknt, ee, pp, pt, ph, po,&
-                    fds, fus, fdir, fuir, plwc=plwc, pre=pre, piwc=piwc, pde=pde, pgwc=pgwc, useMcICA=radMcICA)
-            else
-               call rad( sfc_albedo, u0, SolarConstant, sknt, ee, pp, pt, ph, po,&
-                    fds, fus, fdir, fuir, plwc=plwc, pre=pre, useMcICA=radMcICA)
-            end if
-
-            do k=1,n1
-               kk = nv1 - (k-1)
-               sflx(k,i,j) = fus(kk)  - fds(kk)
-               !irina
-               sflxu(k,i,j)=fus(kk)
-               sflxd(k,i,j)=fds(kk)
-               lflxu(k,i,j)=fuir(kk)
-               lflxd(k,i,j)=fdir(kk)
-               !
-               rflx(k,i,j) = sflx(k,i,j) + fuir(kk) - fdir(kk)
-               !irina
-             !  print *,k, fuir(kk),fdir(kk),sflx(k,i,j), rflx(k,i,j)
+              kk = nv1 - (k-1)
+              sflx(k,i,j)  = fus(kk)  - fds(kk)
+              sflxu(k,i,j) = fus(kk)
+              sflxd(k,i,j) = fds(kk)
+              lflxu(k,i,j) = fuir(kk)
+              lflxd(k,i,j) = fdir(kk)
+              rflx(k,i,j)  = sflx(k,i,j) + fuir(kk) - fdir(kk)
             end do
 
             if (present(albedo)) then
@@ -196,12 +197,113 @@ module radiation
 
             if(heating_atmosphere) then
               do k=2,n1-3
-                 xfact  = dzi_m(k)/(cp*dn0(k)*exner(k))
-                 tt(k,i,j) = tt(k,i,j) - (rflx(k,i,j) - rflx(k-1,i,j))*xfact
+                xfact  = dzi_m(k)/(cp*dn0(k)*exner(k))
+                tt(k,i,j) = tt(k,i,j) - (rflx(k,i,j) - rflx(k-1,i,j))*xfact
               end do
             end if
-         end do
-      end do
+          end do
+        end do
+      ! 
+      ! Radiation for each column 
+      !
+      else 
+        do j=3,n3-2
+          do i=3,n2-2
+            do k=1,n1
+              exner(k) = (pi0(k)+pi1(k)+pip(k,i,j))/cp
+              pres(k) = p00 * (exner(k))**cpr
+            end do
+            pp(nv1) = 0.5*(pres(1)+pres(2)) / 100.
+            do k=2,n1
+              kk = nv-(k-2)
+              pt(kk) = th(k,i,j)*exner(k)
+              ph(kk) = max(0.,rv(k,i,j))
+              plwc(kk) = 1000.*dn0(k)*max(0.,rc(k,i,j))
+              pre(kk) = rad_eff_radius*1.e6*(plwc(kk)/(1000.*prw*CCN*dn0(k)))**(1./3.)
+              pre(kk) = min(max(pre(kk),4.18),31.23)
+              if (plwc(kk).le.0.) pre(kk) = 0.
+              if (present(rr)) then
+                prwc(kk) = 1000.*dn0(k)*rr(k,i,j)
+              else
+                prwc(kk) = 0.
+              end if
+              if (present(ice)) then
+                piwc(kk) = 1000.*dn0(k)*ice(k,i,j)
+                if (nice(k,i,j).gt.0.0) then
+                  pde(kk) = 1.e6*(piwc(kk)/(1000.*pri*nice(k,i,j)*dn0(k)))**(1./3.)
+                  pde(kk) = min(max(pde(kk),20.),180.)
+                else
+                  pde(kk) = 0.0
+                endif
+              else
+                piwc(kk) = 0.
+                pde(kk) = 0.0
+              end if
+              if (present(grp)) then
+                pgwc(kk) = 1000.*dn0(k)*grp(k,i,j)
+              else
+                pgwc(kk) = 0.
+              end if
+              if (k < n1) pp(kk) = 0.5*(pres(k)+pres(k+1)) / 100.
+            end do
+            pp(nv-n1+2) = pres(n1)/100. - 0.5*(pres(n1-1)-pres(n1)) / 100.
+
+            if (present(ice).and.present(grp)) then
+              call rad( sfc_albedo, u0, SolarConstant, sknt, ee, pp, pt, ph, po,&
+                   fds, fus, fdir, fuir, plwc=plwc, pre=pre, piwc=piwc, pde=pde, pgwc=pgwc, useMcICA=radMcICA)
+            else
+              call rad( sfc_albedo, u0, SolarConstant, sknt, ee, pp, pt, ph, po,&
+                   fds, fus, fdir, fuir, plwc=plwc, pre=pre, useMcICA=radMcICA)
+            end if
+
+            do k=1,n1
+              kk = nv1 - (k-1)
+              sflx(k,i,j)  = fus(kk)  - fds(kk)
+              sflxu(k,i,j) = fus(kk)
+              sflxd(k,i,j) = fds(kk)
+              lflxu(k,i,j) = fuir(kk)
+              lflxd(k,i,j) = fdir(kk)
+              rflx(k,i,j)  = sflx(k,i,j) + fuir(kk) - fdir(kk)
+            end do
+
+            if (present(albedo)) then
+              if (u0 > minSolarZenithCosForVis) then
+                albedo(i,j) = fus(1)/fds(1)
+              else
+                albedo(i,j) = -999.
+              end if
+            end if
+
+            if (present(sflxu_toa)) then
+              if (u0 > minSolarZenithCosForVis) then
+                sflxu_toa(i,j) = fus(1)
+              else
+                sflxu_toa(i,j) = -999.
+              end if
+            end if
+            if (present(sflxd_toa)) then
+              if (u0 > minSolarZenithCosForVis) then
+                sflxd_toa(i,j) = fds(1)
+              else
+                sflxd_toa(i,j) = -999.
+              end if
+            end if
+            if (present(lflxu_toa)) then
+              lflxu_toa(i,j) = fuir(1)
+            end if
+            if (present(lflxd_toa)) then
+              lflxd_toa(i,j) = fdir(1)
+            end if
+
+            if(heating_atmosphere) then
+              do k=2,n1-3
+                xfact  = dzi_m(k)/(cp*dn0(k)*exner(k))
+                tt(k,i,j) = tt(k,i,j) - (rflx(k,i,j) - rflx(k-1,i,j))*xfact
+              end do
+            end if
+          end do
+        end do
+      end if
 
     end subroutine d4stream
 
