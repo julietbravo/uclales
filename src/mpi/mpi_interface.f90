@@ -710,6 +710,16 @@ contains
 
   end subroutine broadcast_dbl
 
+  subroutine broadcast_array(array, procsend, n)
+
+    integer, intent(in) :: procsend
+    integer, intent(in) :: n
+    real(kind=8), intent(inout) :: array(n)
+    integer :: ierror
+    call mpi_bcast(array, n, MPI_DOUBLE_PRECISION, procsend, MPI_COMM_WORLD, ierror)
+
+  end subroutine broadcast_array
+
   subroutine mpi_get_time(val)
 
     double precision, intent(out) :: val
