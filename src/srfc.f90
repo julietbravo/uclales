@@ -62,14 +62,13 @@ contains
     use thrm, only: rslf
     use stat, only: sfc_stat, sflg
     use util, only : get_avg3
-    use mpi_interface, only : nypg, nxpg, double_array_par_sum
-    use mpi_interface, only: myid
+    use mpi_interface, only : nypg, nxpg, double_array_par_sum, double_scalar_par_sum, myid
 
     implicit none
 
     real, optional, intent (inout) :: sst, time_in
     integer :: i, j, k, iterate 
-    real :: zs, bflx, ffact, sst1, bflx1, Vbulk, Vzt, usum
+    real :: zs, bflx, ffact, sst1, bflx1, Vbulk, Vzt, usum, tskinsum_loc
     real (kind=8) :: bfl(2), bfg(2)
 
     real :: dtdz(nxp,nyp), drdz(nxp,nyp), usfc(nxp,nyp), vsfc(nxp,nyp) &
@@ -358,7 +357,13 @@ contains
          end do
        end do
 
-       tskinavg = sum(a_tskin(3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
+       !tskinavg = sum(a_tskin(3:(nxp-2),3:(nyp-2)))/(nxp-4)/(nyp-4)
+       ! BvS: calculate global averaged skin temperature
+       tskinsum_loc = sum(a_tskin(3:(nxp-2),3:(nyp-2)))
+       call double_scalar_par_sum(tskinsum_loc, tskinavg)
+       tskinavg  = tskinavg / ((nxpg-4)*(nypg-4)) 
+
+       ! Set SST to domain averaged skin temperature for the radiation code
        sst      = tskinavg*(psrf/p00)**(rcp)
 
        ! Call the LSM
