@@ -33,6 +33,7 @@ module radiation
   real    :: ee, u0, day, time, alat, zz
   logical :: fixed_sun = .false.
   logical :: radMcICA = .true.
+  logical :: heating_atmosphere = .true. ! flag to disable radiative heating in atmosphere
   real    :: rad_eff_radius = 1.
 
   ! BvS: for simple surface radiation
@@ -192,10 +193,13 @@ module radiation
             if (present(lflxd_toa)) then
               lflxd_toa(i,j) = fdir(1)
             end if
-            do k=2,n1-3
-               xfact  = dzi_m(k)/(cp*dn0(k)*exner(k))
-               tt(k,i,j) = tt(k,i,j) - (rflx(k,i,j) - rflx(k-1,i,j))*xfact
-            end do
+
+            if(heating_atmosphere) then
+              do k=2,n1-3
+                 xfact  = dzi_m(k)/(cp*dn0(k)*exner(k))
+                 tt(k,i,j) = tt(k,i,j) - (rflx(k,i,j) - rflx(k-1,i,j))*xfact
+              end do
+            end if
          end do
       end do
 
