@@ -165,7 +165,7 @@ module radiation
               lflxd(k,i,j) = fdir(kk)
               rflx(k,i,j)  = sflx(k,i,j) + fuir(kk) - fdir(kk)
             end do
-
+            
             if (present(albedo)) then
               if (u0 > minSolarZenithCosForVis) then
                 albedo(i,j) = fus(1)/fds(1)
@@ -181,6 +181,7 @@ module radiation
                 sflxu_toa(i,j) = -999.
               end if
             end if
+
             if (present(sflxd_toa)) then
               if (u0 > minSolarZenithCosForVis) then
                 sflxd_toa(i,j) = fds(1)
@@ -188,21 +189,33 @@ module radiation
                 sflxd_toa(i,j) = -999.
               end if
             end if
+
             if (present(lflxu_toa)) then
               lflxu_toa(i,j) = fuir(1)
             end if
+
             if (present(lflxd_toa)) then
               lflxd_toa(i,j) = fdir(1)
             end if
 
-            if(heating_atmosphere) then
-              do k=2,n1-3
-                xfact  = dzi_m(k)/(cp*dn0(k)*exner(k))
-                tt(k,i,j) = tt(k,i,j) - (rflx(k,i,j) - rflx(k-1,i,j))*xfact
-              end do
-            end if
           end do
         end do
+
+        if(heating_atmosphere) then
+          ! Heating tendency is now only 1D, calculate profile
+          do k=2,n1-3
+            ttend(k) = (rflx(k,3,3) - rflx(k-1,3,3))*dzi_m(k)/(cp*dn0(k)*exner(k))
+          end do
+          ! Apply to full 3D field:
+          do j=3,n3-2
+            do i=3,n2-2
+              do k=2,n1-3
+                tt(k,i,j) = tt(k,i,j) - ttend(k)
+              end do
+            end do
+          end do
+        end if
+
       ! 
       ! Radiation for each column 
       !
