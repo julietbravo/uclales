@@ -1,10 +1,10 @@
 &model
 ! GRID --------------------
   nxp          = 20
-  nyp          = 5
+  nyp          = 20
   nzp          = 47
-  deltax       = 5
-  deltay       = 5
+  deltax       = 25
+  deltay       = 25
   igrdtyp      = 3  ! 1=nzp,dz,etc, 3=via zm_grid_in
 
 ! TIME --------------------
@@ -32,9 +32,10 @@
 
   drtcon       = 0.
   dthcon       = -50.
- 
-  mag_pert_q   = 5e-5
-  mag_pert_t   = 0.1
+
+  single_column_rad  = .true.
+  radMcICA           = .false. 
+  heating_atmosphere = .true.
 
   iadv_mom     = 44
   iadv_scal    = 44    
@@ -42,7 +43,10 @@
   cfllim       = 1.5  
 
 ! INIT --------------------
-  zrand        = 100
+  zrand        = 1000
+  mag_pert_q   = 5e-5
+  mag_pert_t   = 0.05
+
   itsflg       = 0
   ipsflg       = 1
   irsflg       = 1
