@@ -112,9 +112,15 @@ contains
     tke0(:)    = 0.
 
     if (.not. allocated(svctr)) then
-      allocate(svctr(nzp, nv2),svctrg(nzp, nv2))
+      allocate(svctr(nzp, nv2))
       svctr(:,:) = 0.
     end if
+
+    if (.not. allocated(svctrg)) then
+      allocate(svctrg(nzp, nv2))
+      svctrg(:,:) = 0.
+    end if
+
     ssclr(:)   = 0.                 ! changed from = -999. to = 0.
 
     ! 
@@ -182,8 +188,7 @@ contains
 
     if (debug) WRITE (0,*) 'statistics: start,      myid=',myid
 
-    call accum_stat(nzp, nxp, nyp, zm, a_up, a_vp, a_wp, a_tp, press, umean    &
-         ,vmean,th00)
+    call accum_stat(nzp, nxp, nyp, zm, a_up, a_vp, a_wp, a_tp, press, umean, vmean, th00)
     !irina
     if (iradtyp == 2 .and. level == 1) then
        call accum_rad(nzp, nxp, nyp, a_rflx)

@@ -749,7 +749,7 @@ contains
   end subroutine write_hist
   !
   ! ----------------------------------------------------------------------
-  ! Subroutine read_hist:  This subroutine reads a binary history file
+  ! Subroutine read_hist: This subroutine reads a binary history file
   !
   subroutine read_hist(time, hfilin)
 

@@ -331,7 +331,6 @@ contains
     use modparticles, only : particles, lpartic, particlestat,lpartstat, &
          deactivate_drops, activate_drops
 
-
     logical, parameter :: debug = .false.
     real :: xtime
     character (len=8) :: adv='monotone'
