@@ -27,7 +27,7 @@ module stat
   implicit none
   private
 
-  integer, parameter :: nvar1 = 72, nvar2 = 121 ! number of time series and profiles
+  integer, parameter :: nvar1 = 72, nvar2 = 134 ! number of time series and profiles
   integer, save      :: nrec1, nrec2, ncid1, ncid2
   real, save         :: fsttm, lsttm
   logical, parameter :: debug      = .false.
@@ -70,7 +70,9 @@ module stat
        'rsup   ','prc_c  ','prc_i  ','prc_s  ','prc_g  ','prc_h  ', & !103
        'hail   ','qt_th  ','s_1    ','s_2    ','s_3    ','RH     ', & !109
        'lwuca  ','lwdca  ','swuca  ','swdca  ','tot_tvw','sgs_tvw', & !115
-       'csmago '/)                                          !121
+       'csmago ','ev_qrt ','ev_nrt ','ev_qtt ','ev_tht ','sed_qrt', & !121
+       'sed_nrt','acc_qrt','acc_qtt','acc_tht','au_qrt ','au_nrt ', & !127
+       'au_qtt ','au_tht '/)                                           !133
 
   real, save, allocatable :: tke_sgs(:), tke_res(:), tke0(:), wtv_sgs(:),  &
                              wtv_res(:), wrl_sgs(:), thvar(:)
@@ -783,7 +785,11 @@ contains
   !
   subroutine accum_lvl3(n1, n2, n3, dn0, zm, rc, rr, nr, rrate, CCN)
 
-    use grid, only : a_pexnr,pi0,pi1
+    use grid, only : a_pexnr,pi0,pi1,lwaterbudget, &
+                     evap_qrt, evap_nrt, evap_qtt, evap_tht, &
+                     sed_qrt, sed_nrt, accr_qrt, accr_qtt, accr_tht, &
+                     auto_qrt, auto_nrt, auto_qtt, auto_tht
+
     use defs, only : alvl,cp
 
     integer, intent (in) :: n1,n2,n3
@@ -798,11 +804,13 @@ contains
     real, dimension(n1)    :: a1
     real, dimension(n2,n3) :: scr1,scr2
     logical                :: aflg
+    real, dimension(n1)    :: ev_qrt_bar, ev_nrt_bar, ev_qtt_bar, ev_tht_bar, &
+                              sed_qrt_bar, sed_nrt_bar, acc_qrt_bar, acc_qtt_bar, acc_tht_bar, &
+                              au_qrt_bar, au_nrt_bar, au_qtt_bar, au_tht_bar
 
     !
     ! conditionally average rain numbers, and droplet concentrations
     !
-
     call get_avg3(n1,n2,n3,rr,a1)
     nrsum = 0.
     nrcnt = 0.
@@ -895,6 +903,43 @@ contains
     ssclr(25) = CCN*1.e-6 ! approximately per cc (but actually #/kg * 10^-6)
     ssclr(26) = nrsum ! Nr in dm^-3 (1/liter)
     ssclr(27) = nrcnt
+
+    ! BvS micro-budget
+    if(lwaterbudget) then
+      call get_avg3(n1, n2, n3, evap_qrt, ev_qrt_bar)
+      call get_avg3(n1, n2, n3, evap_nrt, ev_nrt_bar)
+      call get_avg3(n1, n2, n3, evap_qtt, ev_qtt_bar)
+      call get_avg3(n1, n2, n3, evap_tht, ev_tht_bar)
+
+      call get_avg3(n1, n2, n3, sed_qrt,  sed_qrt_bar)
+      call get_avg3(n1, n2, n3, sed_nrt,  sed_nrt_bar)
+
+      call get_avg3(n1, n2, n3, accr_qrt, acc_qrt_bar)
+      call get_avg3(n1, n2, n3, accr_qtt, acc_qtt_bar)
+      call get_avg3(n1, n2, n3, accr_tht, acc_tht_bar)
+
+      call get_avg3(n1, n2, n3, auto_qrt, au_qrt_bar)
+      call get_avg3(n1, n2, n3, auto_nrt, au_nrt_bar)
+      call get_avg3(n1, n2, n3, auto_qtt, au_qtt_bar)
+      call get_avg3(n1, n2, n3, auto_tht, au_tht_bar)
+
+      svctr(:,122) = svctr(:,122) + ev_qrt_bar(:)
+      svctr(:,123) = svctr(:,123) + ev_nrt_bar(:)
+      svctr(:,124) = svctr(:,124) + ev_qtt_bar(:)
+      svctr(:,125) = svctr(:,125) + ev_tht_bar(:)
+                                
+      svctr(:,126) = svctr(:,126) + sed_qrt_bar(:)
+      svctr(:,127) = svctr(:,127) + sed_nrt_bar(:)
+                                
+      svctr(:,128) = svctr(:,128) + acc_qrt_bar(:)
+      svctr(:,129) = svctr(:,129) + acc_qtt_bar(:)
+      svctr(:,130) = svctr(:,130) + acc_tht_bar(:)
+                                
+      svctr(:,131) = svctr(:,131) + au_qrt_bar(:)
+      svctr(:,132) = svctr(:,132) + au_nrt_bar(:)
+      svctr(:,133) = svctr(:,133) + au_qtt_bar(:)
+      svctr(:,134) = svctr(:,134) + au_tht_bar(:)
+    end if
 
   end subroutine accum_lvl3
   !

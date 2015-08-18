@@ -1511,6 +1511,63 @@ contains
        if (itype==1) ncinfo = 'K'
        if (itype==2) ncinfo = 'time'
 
+    ! BvS micro-budget
+    case('ev_qrt')    
+       if (itype==0) ncinfo = '2mom - Evaporation tendency qr'
+       if (itype==1) ncinfo = 'kg/kg/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('ev_nrt')    
+       if (itype==0) ncinfo = '2mom - Evaporation tendency nr'
+       if (itype==1) ncinfo = '-/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('ev_qtt')    
+       if (itype==0) ncinfo = '2mom - Evaporation tendency qt'
+       if (itype==1) ncinfo = 'kg/kg/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('ev_tht')    
+       if (itype==0) ncinfo = '2mom - Evaporation tendency thl'
+       if (itype==1) ncinfo = 'K/s'
+       if (itype==2) ncinfo = 'tttt'
+
+    case('sed_qrt')    
+       if (itype==0) ncinfo = '2mom - Sedimentation tendency qr'
+       if (itype==1) ncinfo = 'kg/kg/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('sed_nrt')    
+       if (itype==0) ncinfo = '2mom - Sedimentation tendency nr'
+       if (itype==1) ncinfo = '-/s'
+       if (itype==2) ncinfo = 'tttt'
+
+    case('acc_qrt')    
+       if (itype==0) ncinfo = '2mom - Accretion tendency qr'
+       if (itype==1) ncinfo = 'kg/kg/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('acc_qtt')    
+       if (itype==0) ncinfo = '2mom - Accreation tendency qt'
+       if (itype==1) ncinfo = 'kg/kg/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('acc_tht')    
+       if (itype==0) ncinfo = '2mom - Accreation tendency thl'
+       if (itype==1) ncinfo = 'K/s'
+       if (itype==2) ncinfo = 'tttt'
+
+    case('au_qrt')    
+       if (itype==0) ncinfo = '2mom - Autoconversion tendency qr'
+       if (itype==1) ncinfo = 'kg/kg/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('au_nrt')    
+       if (itype==0) ncinfo = '2mom - Autoconversion tendency nr'
+       if (itype==1) ncinfo = '-/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('au_qtt')    
+       if (itype==0) ncinfo = '2mom - Autoconversion tendency qt'
+       if (itype==1) ncinfo = 'kg/kg/s'
+       if (itype==2) ncinfo = 'tttt'
+    case('au_tht')    
+       if (itype==0) ncinfo = '2mom - Autoconversion tendency thl'
+       if (itype==1) ncinfo = 'K/s'
+       if (itype==2) ncinfo = 'tttt'
+
     case default
        if (myid==0) print *, 'ABORTING: variable not found in ncinfo, ',trim(short_name)
        call appl_abort(0)

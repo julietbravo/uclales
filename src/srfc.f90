@@ -482,7 +482,7 @@ contains
     !
     case default
        ffact = 1.
-       wt_sfc(1,1)  = ffact* dthcon/(0.5*(dn0(1)+dn0(2))*cp)
+       wt_sfc(1,1) = ffact* dthcon / (0.5*(dn0(1)+dn0(2)) * cp)
        if(level>0) wq_sfc(1,1)  = ffact* drtcon/(0.5*(dn0(1)+dn0(2))*alvl)
 
        if (zrough <= 0.) then
@@ -528,9 +528,9 @@ contains
 
     if (sflg) then
       if(level==0) then
-        call sfc_stat(nxp,nyp,wt_sfc,a_ustar,sst)
+        call sfc_stat(nxp, nyp, wt_sfc, a_ustar, sst)
       else
-        call sfc_stat(nxp,nyp,wt_sfc,a_ustar,sst,wq_sfc)
+        call sfc_stat(nxp, nyp, wt_sfc, a_ustar, sst, wq_sfc)
       end if
     end if
 

@@ -134,6 +134,16 @@ module grid
         mp_tlt
   ! linda, e 
 
+  !
+  ! BvS temporary quick and dirty tendencies warm microphysics
+  !
+  real, dimension(:,:,:), allocatable :: &
+  evap_qrt, evap_nrt, evap_qtt, evap_tht, &
+  sed_qrt,  sed_nrt, &
+  accr_qrt,           accr_qtt, accr_tht, &
+  auto_qrt, auto_nrt, auto_qtt, auto_tht
+  ! BvS
+
   character(40)      :: zname      = 'zt'
   character(40)      :: zhname     = 'zm'
   character(40)      :: zlongname  = 'Vertical position of cell centers'
@@ -270,14 +280,18 @@ contains
     if (lwaterbudget) then
       nscl = nscl+1 ! additional cloud water a_cld in the tracer array
       ncld = nscl
+
+      allocate(evap_qrt(nzp,nxp,nyp), evap_nrt(nzp,nxp,nyp), evap_qtt(nzp,nxp,nyp), evap_tht(nzp,nxp,nyp), &
+               sed_qrt(nzp,nxp,nyp),  sed_nrt(nzp,nxp,nyp), accr_qrt(nzp,nxp,nyp), accr_qtt(nzp,nxp,nyp), &
+               accr_tht(nzp,nxp,nyp), auto_qrt(nzp,nxp,nyp), auto_nrt(nzp,nxp,nyp), &
+               auto_qtt(nzp,nxp,nyp), auto_tht(nzp,nxp,nyp))
     end if
     if (lcouvreux) then
       nscl = nscl+1 ! Additional radioactive scalar
       ncvrx = nscl
     end if
 
-    allocate (a_xp(nzp,nxp,nyp,nscl), a_xt1(nzp,nxp,nyp,nscl),        &
-         a_xt2(nzp,nxp,nyp,nscl))
+    allocate (a_xp(nzp,nxp,nyp,nscl), a_xt1(nzp,nxp,nyp,nscl), a_xt2(nzp,nxp,nyp,nscl))
 
     a_xp(:,:,:,:)  = 0.
     a_xt1(:,:,:,:) = 0.

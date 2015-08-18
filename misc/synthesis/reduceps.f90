@@ -5,6 +5,12 @@
 ! This program glues together the ps files from UCLA
 ! Compile with ifort -o reduceps reduceps.f90 -L/sw/sles9-x64/netcdf-3.6.2-intel/lib -lnetcdf
 ! -I/sw/sles9-x64/netcdf-3.6.2-intel/include on tornado
+
+! Macbook BvS
+! gfortran -o reduceps reduceps.f90 -L/opt/local/lib -lnetcdff -L/opt/local/lib -Wl,-headerpad_max_install_names -lnetcdf -lnetcdf  -I/opt/local/include -I/opt/local/include -DNDEBUG
+! gfortran -o reducets reducets.f90 -L/opt/local/lib -lnetcdff -L/opt/local/lib -Wl,-headerpad_max_install_names -lnetcdf -lnetcdf  -I/opt/local/include -I/opt/local/include -DNDEBUG
+
+
 ! Assume number of time steps nt smaller than 10000, number of levels nlev smaller than 150
 ! and number of variables nv smaller than 100 ! otherwise need to be changed
         integer, parameter :: nv=200,nma=7,nmi=2,nsu=28
